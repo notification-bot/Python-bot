@@ -10,12 +10,10 @@ longpoll = VkBotLongPoll(vk_session, 191177272)
 
 for event in longpoll.listen():
     if event.type == VkBotEventType.MESSAGE_NEW:
-        if event.obj.text != '':
-            # проверяем пришло сообщение от пользователя или нет
-            if event.from_user:
-                print(event.obj.get('message'))
-                vk.messages.send(
-                    user_id=event.obj.get('message').get('from_id'),
-                    random_id=get_random_id(),
-                    message=event.obj.get('message').get('text'),
-                )
+        if event.from_user:
+            msg = 'Не понимаю тебя' if event.obj.get('message').get('attachments') != [] else event.obj.get('message').get('text')
+            vk.messages.send(
+                user_id=event.obj.get('message').get('from_id'),
+                random_id=get_random_id(),
+                message=msg,
+            )
