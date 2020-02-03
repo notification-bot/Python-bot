@@ -25,3 +25,6 @@ class UserList:
         f = open(self.data_dir, 'w')
         f.write(json.dumps(self.all_users))
         f.close()
+
+    def get_dict(self):
+        return self.all_users
