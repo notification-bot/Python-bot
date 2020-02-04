@@ -1,3 +1,4 @@
+# coding=utf-8
 import json
 
 
@@ -7,7 +8,7 @@ class UserList:
 
     def __init__(self, data_dir="./data/base.json"):
         self.data_dir = data_dir
-        f = open(data_dir, 'r')
+        f = open(data_dir, 'r', encoding="utf-8")
         for key, value in json.loads(f.read()).items():
             self.all_users[key] = value
         f.close()
@@ -22,9 +23,12 @@ class UserList:
         self.update_file()
 
     def update_file(self):
-        f = open(self.data_dir, 'w')
+        f = open(self.data_dir, 'w', encoding="utf-8")
         f.write(json.dumps(self.all_users))
         f.close()
 
     def get_dict(self):
         return self.all_users
+
+    def delete_event(self, user_id, date):
+        self.all_users[user_id].pop(date)
