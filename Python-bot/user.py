@@ -1,6 +1,6 @@
 # coding=utf-8
 import json
-
+import datetime
 
 class UserList:
     all_users = dict()  # Contains dict(user_id, User)
@@ -10,7 +10,10 @@ class UserList:
         self.data_dir = data_dir
         f = open(data_dir, 'r', encoding="utf-8")
         for key, value in json.loads(f.read()).items():
-            self.all_users[key] = value
+            for sub_key, sub_value in value.items():
+                if sub_key >= datetime.datetime.now().strftime('%Y-%m-%d:%H.%M'):
+                    self.all_users[key] = {sub_key: sub_value}
+        print(self.all_users)
         f.close()
 
     def add_rec(self, user_id, user_events=None):
