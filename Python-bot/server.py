@@ -10,9 +10,30 @@ class Server:
     v = 'v=5.103'  # Текущая версия VkAPI
     body = 'https://api.vk.com/method/'  # Тело запроса
     data = UserList()
+    closest_time = 'z'  # to make it bigger than numbers
+    closest_events = dict()
 
     def __init__(self):
         Server.getLongPollServer(self)
+        self.find_closest_events()
+
+    def find_closest_events(self):
+        self.closest_events, self.closest_time = dict(), 'z'
+        for key, value in self.data.get_dict().items():
+            for sub_key, sub_value in value.items():
+                if sub_key <= self.closest_time:
+                    self.closest_time = sub_key
+                    self.closest_events[key] = sub_value
+
+    def send_notifications(self):
+        for key, value in self.closest_events.items():
+            message, user_id, random_id = value, key, random.randint(0, 100)
+            method = 'messages.send?' + 'user_id=' + str(user_id) + '&random_id=' + str(random_id) \
+                     + '&message=' + message
+            r = requests.get("&".join([Server.body + method, Server.v, Server.access_token]))
+            self.data.delete_event(key, self.closest_time)
+        self.data.update_file()
+        self.find_closest_events()
 
     def getLongPollServer(self):
         method = 'groups.getLongPollServer?group_id=191177272'
@@ -30,17 +51,23 @@ class Server:
     def simple_loop(self):
         reply = json.loads(self.simple_request().text)
         self.ts = reply['ts']
-        # print(json.dumps(reply, indent='\t'))
+        if self.closest_time != '' and self.check_date():
+            self.send_notifications()
         if reply['updates']:
             message = reply['updates'][0]['object']['message']['text']
             user_id = reply['updates'][0]['object']['message']['from_id']
-            self.data.add_rec(str(user_id), {datetime.datetime.now().isoformat('|'): message})
+            self.data.add_rec(str(user_id), {datetime.datetime.now().strftime('%Y-%m-%d:%H.%M'): message})
             random_id = random.randint(0, 100)
             method = 'messages.send?' + 'user_id=' + str(user_id) + '&random_id=' + str(random_id) \
                      + '&message=' + message
             r = requests.get("&".join([Server.body + method, Server.v, Server.access_token]))
             print("&".join([Server.body + method, Server.v, Server.access_token]))
         self.simple_loop()
+
+    def check_date(self):
+        if datetime.datetime.now().strftime('%Y-%m-%d:%H.%M') == self.closest_time:
+            return True
+        return False
 
 
 server = Server()
